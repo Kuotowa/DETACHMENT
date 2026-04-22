@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>剥离 DETACHMENT - 电子邀请函</title>
+    <style>
+        /* 基础重置与全局样式 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden; /* 防止移动端滚动 */
+            font-family: "Noto Serif SC", "Songti SC", "SimSun", "STSong", serif; /* 衬线体，保持剧场肃穆感 */
+            color: #fff;
+            -webkit-font-smoothing: antialiased;
+            touch-action: none; /* 阻止默认触摸行为 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 固定尺寸画板容器 */
+        .canvas-container {
+            position: relative;
+            width: 2551px;
+            height: 3685px;
+            transform-origin: center center;
+        }
+
+        /* 元素渐入动画 */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.1s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 初始隐藏元素 */
+        .hidden-element {
+            opacity: 0;
+        }
+
+        /* 开场黑屏 */
+        .black-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .black-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 开场模糊效果 */
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 9998;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .blur-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 前景光晕粒子层 */
+        .glow-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .glow-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+            filter: blur(3px);
+            animation: floatParticle 8s ease-in-out infinite;
+        }
+
+        .glow-particle:nth-child(1) {
+            width: 20px;
+            height: 20px;
+            top: 8%;
+            left: 12%;
+            animation-delay: 0s;
+            animation-duration: 9s;
+            opacity: 0.4;
+        }
+
+        .glow-particle:nth-child(2) {
+            width: 15px;
+            height: 15px;
+            top: 22%;
+            left: 35%;
+            animation-delay: 1.5s;
+            animation-duration: 11s;
+            opacity: 0.35;
+        }
+
+        .glow-particle:nth-child(3) {
+            width: 25px;
+            height: 25px;
+            top: 15%;
+            left: 58%;
+            animation-delay: 0.8s;
+            animation-duration: 8s;
+            opacity: 0.45;
+        }
+
+        .glow-particle:nth-child(4) {
+            width: 18px;
+            height: 18px;
+            top: 35%;
+            left: 18%;
+            animation-delay: 2.2s;
+            animation-duration: 10s;
+            opacity: 0.3;
+        }
+
+        .glow-particle:nth-child(5) {
+            width: 30px;
+            height: 30px;
+            top: 28%;
+            left: 75%;
+            animation-delay: 1.2s;
+            animation-duration: 12s;
+            opacity: 0.5;
+        }
+
+        .glow-particle:nth-child(6) {
+            width: 16px;
+            height: 16px;
+            top: 45%;
+            left: 42%;
+            animation-delay: 0.5s;
+            animation-duration: 9s;
+            opacity: 0.38;
+        }
+
+        .glow-particle:nth-child(7) {
+            width: 14px;
+            height: 14px;
+            top: 52%;
+            left: 88%;
+            animation-delay: 2.8s;
+            animation-duration: 11s;
+            opacity: 0.32;
+        }
+
+        .glow-particle:nth-child(8) {
+            width: 22px;
+            height: 22px;
+            top: 62%;
+            left: 25%;
+            animation-delay: 1.8s;
+            animation-duration: 8s;
+            opacity: 0.42;
+        }
+
+        .glow-particle:nth-child(9) {
+            width: 17px;
+            height: 17px;
+            top: 58%;
+            left: 55%;
+            animation-delay: 0.3s;
+            animation-duration: 10s;
+            opacity: 0.28;
+        }
+
+        .glow-particle:nth-child(10) {
+            width: 24px;
+            height: 24px;
+            top: 72%;
+            left: 68%;
+            animation-delay: 2.5s;
+            animation-duration: 9s;
+            opacity: 0.48;
+        }
+
+        .glow-particle:nth-child(11) {
+            width: 16px;
+            height: 16px;
+            top: 78%;
+            left: 15%;
+            animation-delay: 1s;
+            animation-duration: 11s;
+            opacity: 0.36;
+        }
+
+        .glow-particle:nth-child(12) {
+            width: 19px;
+            height: 19px;
+            top: 85%;
+            left: 45%;
+            animation-delay: 2s;
+            animation-duration: 10s;
+            opacity: 0.4;
+        }
+
+        .glow-particle:nth-child(13) {
+            width: 13px;
+            height: 13px;
+            top: 38%;
+            left: 65%;
+            animation-delay: 0.7s;
+            animation-duration: 10s;
+            opacity: 0.35;
+        }
+
+        .glow-particle:nth-child(14) {
+            width: 21px;
+            height: 21px;
+            top: 42%;
+            left: 80%;
+            animation-delay: 1.3s;
+            animation-duration: 9s;
+            opacity: 0.4;
+        }
+
+        .glow-particle:nth-child(15) {
+            width: 17px;
+            height: 17px;
+            top: 18%;
+            left: 25%;
+            animation-delay: 2.1s;
+            animation-duration: 11s;
+            opacity: 0.38;
+        }
+
+        .glow-particle:nth-child(16) {
+            width: 18px;
+            height: 18px;
+            top: 68%;
+            left: 35%;
+            animation-delay: 0.9s;
+            animation-duration: 8s;
+            opacity: 0.42;
+        }
+
+        .glow-particle:nth-child(17) {
+            width: 26px;
+            height: 26px;
+            top: 88%;
+            left: 75%;
+            animation-delay: 1.7s;
+            animation-duration: 10s;
+            opacity: 0.45;
+        }
+
+        .glow-particle:nth-child(18) {
+            width: 14px;
+            height: 14px;
+            top: 55%;
+            left: 22%;
+            animation-delay: 2.3s;
+            animation-duration: 11s;
+            opacity: 0.32;
+        }
+
+        .glow-particle:nth-child(19) {
+            width: 22px;
+            height: 22px;
+            top: 7%;
+            left: 45%;
+            animation-delay: 0.5s;
+            animation-duration: 9s;
+            opacity: 0.4;
+        }
+
+        .glow-particle:nth-child(20) {
+            width: 15px;
+            height: 15px;
+            top: 82%;
+            left: 62%;
+            animation-delay: 1.9s;
+            animation-duration: 8s;
+            opacity: 0.36;
+        }
+
+        .glow-particle:nth-child(21) {
+            width: 28px;
+            height: 28px;
+            top: 12%;
+            left: 80%;
+            animation-delay: 0.6s;
+            animation-duration: 10s;
+            opacity: 0.45;
+        }
+
+        .glow-particle:nth-child(22) {
+            width: 16px;
+            height: 16px;
+            top: 25%;
+            left: 10%;
+            animation-delay: 1.4s;
+            animation-duration: 11s;
+            opacity: 0.38;
+        }
+
+        .glow-particle:nth-child(23) {
+            width: 23px;
+            height: 23px;
+            top: 48%;
+            left: 72%;
+            animation-delay: 2.7s;
+            animation-duration: 9s;
+            opacity: 0.42;
+        }
+
+        .glow-particle:nth-child(24) {
+            width: 19px;
+            height: 19px;
+            top: 32%;
+            left: 48%;
+            animation-delay: 1.1s;
+            animation-duration: 8s;
+            opacity: 0.4;
+        }
+
+        .glow-particle:nth-child(25) {
+            width: 25px;
+            height: 25px;
+            top: 75%;
+            left: 28%;
+            animation-delay: 2.4s;
+            animation-duration: 10s;
+            opacity: 0.48;
+        }
+
+        .glow-particle:nth-child(26) {
+            width: 17px;
+            height: 17px;
+            top: 60%;
+            left: 85%;
+            animation-delay: 0.8s;
+            animation-duration: 11s;
+            opacity: 0.35;
+        }
+
+        .glow-particle:nth-child(27) {
+            width: 24px;
+            height: 24px;
+            top: 8%;
+            left: 65%;
+            animation-delay: 1.6s;
+            animation-duration: 9s;
+            opacity: 0.43;
+        }
+
+        .glow-particle:nth-child(28) {
+            width: 18px;
+            height: 18px;
+            top: 90%;
+            left: 18%;
+            animation-delay: 2.9s;
+            animation-duration: 8s;
+            opacity: 0.39;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.35;
+            }
+            25% {
+                transform: translate(8px, -12px) scale(1.1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate(-4px, -20px) scale(0.9);
+                opacity: 0.4;
+            }
+            75% {
+                transform: translate(12px, -8px) scale(1.05);
+                opacity: 0.45;
+            }
+        }
+
+        /* 蒙版睁开效果 */
+        .eye-mask {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 100px;
+            background-color: #000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0.1);
+            z-index: 9997;
+            animation: eyeOpen 1s ease-in-out forwards;
+        }
+
+        @keyframes eyeOpen {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(15);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(15);
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+
+        /* 主舞台容器 */
+        .stage {
+            position: relative;
+            width: 2551px;
+            height: 3685px;
+            background-color: #000;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        /* 统一的图层基础样式 */
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            pointer-events: none; /* 让图层不阻挡点击事件 */
+        }
+
+        /* 图层 1：底层 */
+        .layer-bg {
+            background-image: url('./assets/底层.png');
+            z-index: 1;
+        }
+
+        /* 图层 2：眼睛层 (动态视频) */
+        .layer-eye {
+            z-index: 2;
+            mix-blend-mode: soft-lightdge; /* 颜色减淡以融合底色 */
+        }
+
+        .layer-eye video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: transparent;
+            opacity: 0.2;
+            filter: grayscale(100%);
+        }
+
+        /* 图层 3：主标元素 (白色细线圈等) */
+        .layer-main-elements {
+            background-image: url('./assets/主标元素.png');
+            z-index: 3;
+        }
+
+        /* 图层 4：剥离 (主标题) */
+        .layer-title-container {
+            position: absolute;
+            z-index: 4;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .layer-title {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 图层 5：零散元素 (红色像素点) */
+        .layer-particles {
+            background-image: url('./assets/零散元素.png');
+            z-index: 5;
+        }
+
+        /* --- 动画定义 --- */
+
+        /* 眼睛层：极慢的透明度呼吸效果 */
+        @keyframes breathe {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.3; }
+        }
+
+        /* 多重偏色闪烁(Glitch)效果 */
+        @keyframes glitch {
+            0%, 100% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            5% {
+                opacity: 0.8;
+                transform: translate(1px, -1px);
+            }
+            10% {
+                opacity: 0.9;
+                transform: translate(-1px, 1px);
+            }
+            15% {
+                opacity: 0.7;
+                transform: translate(1px, 1px);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            25% {
+                opacity: 0.85;
+                transform: translate(-1px, -1px);
+            }
+            30% {
+                opacity: 0.95;
+                transform: translate(1px, 0);
+            }
+            35% {
+                opacity: 0.8;
+                transform: translate(0, -1px);
+            }
+            40% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            45% {
+                opacity: 0.9;
+                transform: translate(-1px, 0);
+            }
+            50% {
+                opacity: 0.95;
+                transform: translate(0, 1px);
+            }
+            55% {
+                opacity: 0.85;
+                transform: translate(1px, -1px);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            65% {
+                opacity: 0.8;
+                transform: translate(-1px, 1px);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translate(1px, 1px);
+            }
+            75% {
+                opacity: 0.95;
+                transform: translate(0, -1px);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            85% {
+                opacity: 0.85;
+                transform: translate(1px, 0);
+            }
+            90% {
+                opacity: 0.9;
+                transform: translate(-1px, -1px);
+            }
+            95% {
+                opacity: 0.95;
+                transform: translate(0, 1px);
+            }
+        }
+
+
+
+        /* 剥离标题：RGB Split 与模糊变清晰的抽离效果 */
+        @keyframes detach {
+            0% {
+                filter: blur(20px) drop-shadow(15px 0 0 rgba(255,0,0,0.8)) drop-shadow(-15px 0 0 rgba(0,255,100,0.8));
+                transform: scale(1.15);
+                opacity: 0;
+            }
+            40% {
+                filter: blur(10px) drop-shadow(8px 0 0 rgba(255,0,0,0.6)) drop-shadow(-8px 0 0 rgba(0,255,100,0.6));
+                opacity: 0.6;
+            }
+            70% {
+                filter: blur(4px) drop-shadow(3px 0 0 rgba(255,0,0,0.3)) drop-shadow(-3px 0 0 rgba(0,255,100,0.3));
+                opacity: 0.9;
+            }
+            100% {
+                filter: blur(0px) drop-shadow(0 0 0 rgba(255,0,0,0)) drop-shadow(0 0 0 rgba(0,255,100,0));
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 点击提示 */
+        .click-hint {
+            position: absolute;
+            bottom: 6%;
+            width: 100%;
+            text-align: center;
+            font-size: 3.5rem;
+            color: #ffffff;
+            letter-spacing: 15px;
+            line-height: 1.4;
+            z-index: 6;
+            animation: pulse 2s infinite ease-in-out;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            font-weight: normal;
+            font-family: "SimHei", "Heiti TC", "黑体", sans-serif;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            margin-left: 43.2px;
+            margin-top: 60px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+
+        /* --- 邀请函文本面板 --- */
+        .invitation-panel {
+            position: absolute;
+            bottom: -100%; /* 初始隐藏在屏幕下方 */
+            left: 0;
+            width: 100%;
+            height: 80%; /* 占据下方大部分空间 */
+            /* 渐变黑色半透明背景 */
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 45%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0) 100%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px 30px;
+            box-sizing: border-box;
+            transition: bottom 1.5s cubic-bezier(0.19, 1, 0.22, 1); /* 极为平滑的 Slide Up */
+            pointer-events: none; /* 展开前不响应事件 */
+        }
+
+        .invitation-panel.show {
+            bottom: 0;
+            pointer-events: auto; /* 展开后允许内容交互 */
+        }
+
+        .invitation-content {
+            max-height: 100%;
+            overflow-y: auto; /* 内容过多可滑动 */
+            padding-bottom: 20px;
+            pointer-events: auto;
+        }
+
+        /* 隐藏滚动条但保留功能 */
+        .invitation-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .invitation-title {
+            font-size: 100px;
+            text-align: center;
+            margin-bottom: 70px;
+            letter-spacing: 24px;
+            text-indent: 24px;
+            font-weight: bold;
+            font-family: Impact, Charcoal, sans-serif;
+            color: #ffffff;
+            flex-direction: column;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 35px;
+        }
+
+        .invitation-text {
+            font-size: 2.8rem;
+            line-height: 2.2;
+            margin-bottom: 60px;
+            text-align: justify;
+            letter-spacing: 6px;
+            color: #ececec;
+            font-family: "SimHei", "Heiti TC", "黑体", sans-serif;
+        }
+
+        /* 第二个invitation-text元素（诚挚邀请您...） */
+        .invitation-content .invitation-text:nth-child(2) {
+            font-size: 70px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        /* 第三个invitation-text元素（首次跨学科联合创作...） */
+        .invitation-content .invitation-text:nth-child(3) {
+            font-size: 70px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        /* 第四个invitation-text元素（作品改编自...） */
+        .invitation-content .invitation-text:nth-child(4) {
+            font-size: 70px;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        
+        .invitation-text strong {
+            font-weight: bold;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 2px;
+        }
+
+        .invitation-footer {
+            text-align: right;
+            margin-top: 100px;
+            margin-bottom: 100px;
+            font-size: 80px;
+            font-weight: 300;
+            letter-spacing: 12px;
+            color: #ffffff;
+            font-style: italic;
+            font-family: "SimHei", "Heiti TC", "黑体", sans-serif;
+        }
+
+        /* 确保所有邀请函内文字都是黑体 */
+        .invitation-content {
+            font-family: "SimHei", "Heiti TC", "黑体", sans-serif;
+            font-size: 70px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="black-screen" id="blackScreen"></div>
+    <div class="blur-overlay" id="blurOverlay"></div>
+    <div class="eye-mask"></div>
+    <div class="canvas-container" id="canvasContainer">
+        <div class="glow-particles">
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+        <div class="glow-particle"></div>
+    </div>
+        <div class="stage" id="stage">
+            <!-- 视觉层级 (由下至上堆叠) -->
+            <div class="layer layer-bg hidden-element"></div>
+            <div class="layer layer-eye">
+                <video src="./眼睛.mp4" autoplay muted playsinline loop id="eyeVideo"></video>
+            </div>
+            <div class="layer layer-main-elements hidden-element"></div>
+            
+            <div class="layer-title-container hidden-element">
+            <img src="./assets/剥离.png" class="layer-title" alt="剥离">
+        </div>
+            
+            <div class="layer layer-particles hidden-element"></div>
+
+            <div class="click-hint hidden-element" id="clickHint">TAP<br>TO<br>OPEN</div>
+
+            <!-- 邀请函信息面板 -->
+            <div class="invitation-panel" id="invitationPanel">
+                <div class="invitation-content">
+                    <div class="invitation-title">邀请函</div>
+                    
+                    <div class="invitation-text">
+                        诚挚邀请您于2026.4.28 星期二 14:30，莅临华影楼112，观看实验性剧场作品《剥离》的演出。
+                    </div>
+                    
+                    <div class="invitation-text">
+                        首次跨学科联合创作： 表演专业 × 影视摄影与制作专业 × 电影制作专业
+                    </div>
+                    
+                    <div class="invitation-text">
+                        作品改编自威廉·莎士比亚的《李尔王》，我们将影像技术融入舞台表演，探索新的剧场艺术形式 — 当戏剧的身体与镜头的凝视相遇，现场的呼吸从屏幕的折射中抽离，而"看见"本身将被重新质疑。
+                    </div>
+                    
+                    <div class="invitation-footer">
+                        期待您的到来。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stage = document.getElementById('stage');
+            const panel = document.getElementById('invitationPanel');
+            const hint = document.getElementById('clickHint');
+            const canvasContainer = document.getElementById('canvasContainer');
+            const blackScreen = document.getElementById('blackScreen');
+            const blurOverlay = document.getElementById('blurOverlay');
+            let isPanelShown = false;
+            let isInteractive = false;
+
+            // 计算并应用缩放
+            const resizeCanvas = () => {
+                const canvasWidth = 2551;
+                const canvasHeight = 3685;
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                // 计算缩放比例，取较小值以确保完整显示
+                const scaleX = windowWidth / canvasWidth;
+                const scaleY = windowHeight / canvasHeight;
+                const scale = Math.min(scaleX, scaleY);
+                
+                // 应用缩放
+                canvasContainer.style.transform = `scale(${scale})`;
+            };
+
+            // 触发信息区平滑升起的函数
+            const togglePanel = () => {
+                if (!isInteractive) return; // 确保只有在所有元素出现后才能点击
+                
+                if (isPanelShown) {
+                    // 隐藏面板
+                    isPanelShown = false;
+                    panel.classList.remove('show');
+                    hint.style.opacity = '1'; // 显示点击提示
+                } else {
+                    // 显示面板
+                    isPanelShown = true;
+                    panel.classList.add('show');
+                    hint.style.opacity = '0'; // 隐藏点击提示
+                }
+            };
+
+            // 开场动画
+            const startOpeningAnimation = () => {
+                // 1. 移除所有元素的hidden类，让它们一开始就显示
+                const hiddenElements = document.querySelectorAll('.hidden-element');
+                hiddenElements.forEach(element => {
+                    element.classList.remove('hidden-element');
+                    element.style.opacity = '1';
+                });
+                
+                // 2. 移除眼睛的初始隐藏状态
+                const layerEye = document.querySelector('.layer-eye');
+                layerEye.style.opacity = '1';
+                
+                // 3. 0.5秒后开始蒙版睁开动画
+                setTimeout(() => {
+                    // 移除黑屏
+                    blackScreen.classList.add('hidden');
+                }, 500);
+                
+                // 4. 1.5秒后开始模糊变清晰
+                setTimeout(() => {
+                    blurOverlay.classList.add('hidden');
+                }, 1500);
+                
+                // 5. 2秒后启用交互
+                setTimeout(() => {
+                    isInteractive = true;
+                    hint.style.opacity = '1'; // 显示点击提示
+                }, 2000);
+            };
+
+            // 页面加载后开始开场动画
+            startOpeningAnimation();
+            
+            // 初始化缩放
+            resizeCanvas();
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', resizeCanvas);
+
+            // 交互：点击屏幕任何位置触发
+            stage.addEventListener('click', togglePanel);
+        });
+    </script>
+</body>
+</html>
